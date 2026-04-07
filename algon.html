@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>알고모바일 | 온라인·택배 실시간 시세표</title>
+    <style>
+        :root {
+            --primary: #3182F6; --text: #191F28; --sub: #6B7684;
+            --bg: #F5F6F8; --card: #FFFFFF; --border: #E5E8EB;
+            --point: #D32F2F; /* 강조용 레드 */
+            --radius: 18px; --shadow: 0 8px 24px rgba(0,0,0,.06);
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 100px; }
+        .container { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+
+        .topbar { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,.9); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+        .topbar .inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+        .brand { font-weight: 900; font-size: 20px; display: flex; align-items: center; gap: 8px; }
+        .brand .logo { width: 24px; height: 24px; background: var(--primary); border-radius: 6px; }
+
+        .section { padding: 20px 0; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; }
+        
+        /* 상단 긴급 공지 스타일 */
+        .top-notice { background: #fffbe6; border: 1px solid #ffe58f; padding: 12px; border-radius: 12px; margin-bottom: 15px; font-size: 14px; font-weight: bold; color: #856404; text-align: center; }
+
+        .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+        .chip { border: 1px solid var(--border); background: #fff; padding: 10px 20px; border-radius: 999px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+        .chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        .search-input { width: 100%; border: 1px solid var(--border); border-radius: 14px; padding: 15px; margin-top: 15px; font-weight: 700; font-size: 16px; outline: none; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-top: 20px; }
+        .p-card { display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+        
+        /* 카드 상단 핵심 문구 배지 */
+        .badge-row { display: flex; gap: 6px; margin-bottom: 15px; flex-wrap: wrap; }
+        .badge { font-size: 11px; padding: 5px 10px; border-radius: 6px; font-weight: 900; }
+        .badge.carrier { background: #f0f0f0; color: #555; }
+        .badge.point { background: #fff1f0; color: var(--point); border: 1px solid #ffa39e; }
+        .badge.yellow { background: #feffe6; color: #856404; border: 1px solid #ffe58f; }
+
+        .model { font-size: 22px; font-weight: 900; margin: 0 0 10px; letter-spacing: -0.5px; }
+        .meta { font-size: 14px; color: var(--sub); line-height: 1.6; margin-bottom: 15px; padding: 12px; background: #f9fafb; border-radius: 10px; }
+        .meta b { color: #333; }
+
+        .price-label { font-size: 13px; color: var(--sub); font-weight: bold; margin-bottom: 2px; }
+        .price { font-size: 36px; font-weight: 1000; color: var(--text); letter-spacing: -1.5px; margin-bottom: 20px; }
+        .price span { font-size: 18px; font-weight: 800; margin-left: 2px; }
+
+        .btn-primary { display: block; width: 100%; background: var(--primary); color: #fff; text-align: center; padding: 18px; border-radius: 16px; font-weight: 800; text-decoration: none; font-size: 17px; }
+        
+        .bottom-cta { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-top: 1px solid var(--border); padding: 16px; z-index: 100; }
+
+        @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } .hero-title { font-size: 24px; } }
+    </style>
+</head>
+<!-- 카톡 상담 플로팅 버튼 및 모달 -->
+<div id="kakao-floating-area" style="position: fixed; bottom: 100px; right: 20px; z-index: 1000;">
+    <!-- 말풍선 가이드 (3초 후 자동으로 나타남) -->
+    <div id="kakao-guide" style="display:none; position: absolute; bottom: 70px; right: 0; width: 180px; background: #fff; border: 1px solid #ddd; padding: 12px; border-radius: 15px; box-shadow: var(--shadow); font-size: 13px; font-weight: bold; line-height: 1.4;">
+        <span style="color:var(--primary);">알고모바일</span> 상담원과<br>실시간 톡 시작하기!
+        <div style="position: absolute; bottom: -8px; right: 20px; width: 15px; height: 15px; background: #fff; border-right: 1px solid #ddd; border-bottom: 1px solid #ddd; transform: rotate(45deg);"></div>
+    </div>
+
+    <!-- 메인 버튼 -->
+    <a href="http://pf.kakao.com/_sdYlu/chat" target="_blank" id="kakao-main-btn" style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; background: #FEE500; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: transform 0.3s; text-decoration: none;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e3/KakaoTalk_logo.svg" style="width: 32px; height: 32px;" alt="카톡상담">
+    </a>
+</div>
+
+<script>
+    // 페이지 로드 2초 후 말풍선 띄우기
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            const guide = document.getElementById('kakao-guide');
+            if(guide) guide.style.display = 'block';
+        }, 2000);
+    });
+
+    // 버튼 호버 효과
+    const kakaoBtn = document.getElementById('kakao-main-btn');
+    kakaoBtn.addEventListener('mouseenter', () => kakaoBtn.style.transform = 'scale(1.1)');
+    kakaoBtn.addEventListener('mouseleave', () => kakaoBtn.style.transform = 'scale(1.0)');
+</script>
+<body>
+
+<div class="topbar">
+    <div class="container">
+        <div class="inner">
+            <div class="brand"><div class="logo"></div> ALGO ONLINE</div>
+            <div style="font-size: 13px; font-weight: bold; color: var(--sub);">전국 당일 택배 전문</div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <section class="section">
+        <div class="top-notice">📢 제휴카드 조건X / 기기반납X / 눈속임 없는 실구매가 정찰제</div>
+        <div class="card">
+            <h2 style="margin:0; font-size:22px; font-weight:950; letter-spacing:-0.5px;">오늘의 온라인 특가</h2>
+            <div class="chips" id="carrierFilter">
+                <button class="chip active" data-carrier="ALL">전체</button>
+                <button class="chip" data-carrier="SKT">SKT</button>
+                <button class="chip" data-carrier="KT">KT</button>
+                <button class="chip" data-carrier="LGU+">LGU+</button>
+            </div>
+            <input type="text" id="modelSearch" class="search-input" placeholder="모델명이나 용량을 검색하세요">
+        </div>
+    </section>
+
+    <div id="loading" style="text-align:center; padding:80px 0; font-weight:bold; color:var(--sub);">최신 단가 동기화 중...</div>
+    <div id="priceGrid" class="grid"></div>
+    
+    <div style="margin-top:30px; padding:20px; color:var(--sub); font-size:13px; line-height:1.7;">
+        ※ 모든 단가는 <b>현금완납</b> 기준이며, 할부 개통 시 별도 문의 바랍니다.<br>
+        ※ 부가서비스 유지 기간 미준수 시 위약금이 발생할 수 있습니다.<br>
+        ※ 실시간 정책에 따라 조기 마감될 수 있습니다.
+    </div>
+</div>
+
+<div class="bottom-cta">
+    <div class="container">
+        <a href="http://pf.kakao.com/_xmgiwn/chat" target="_blank" class="btn-primary">카톡으로 재고 확인 및 접수</a>
+    </div>
+</div>
+
+<script>
+    const SPREADSHEET_ID = '1BLu38wjfsMwRk9wp5jnlE-3mlqb-_mZzp0i-Z_fdoXw'; 
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
+
+    let rawData = [];
+    let state = { carrier: 'ALL', search: '' };
+
+    async function fetchData() {
+        try {
+            const response = await fetch(CSV_URL);
+            const text = await response.text();
+            const rows = text.split('\n').map(row => row.replace(/"/g, '').split(','));
+            
+            rawData = rows.slice(1).map(cols => ({
+                model: cols[0],
+                price: cols[1], 
+                carrier: cols[3] || 'SKT', 
+                storage: cols[4] || '256G',
+                plan: cols[5] || '기본요금제',
+                addon: cols[6] || '해당없음'
+            })).filter(item => item.model && item.model.trim() !== "");
+
+            document.getElementById('loading').style.display = 'none';
+            render();
+        } catch (err) {
+            document.getElementById('loading').innerText = '데이터 로드 실패';
+        }
+    }
+
+    function createCard(item) {
+        return `
+            <div class="card p-card">
+                <div>
+                    <div class="badge-row">
+                        <span class="badge carrier">${item.carrier}</span>
+                        <span class="badge point">현금완납</span>
+                        <span class="badge yellow">제휴카드X</span>
+                        <span class="badge carrier">${item.storage}</span>
+                    </div>
+                    <div class="model">${item.model}</div>
+                    <div class="meta">
+                        <b>요금제:</b> ${item.plan}<br>
+                        <b>부가서비스:</b> ${item.addon}
+                    </div>
+                </div>
+                <div>
+                    <div class="price-label">최종 결제금액</div>
+                    <div class="price">${Number(item.price).toLocaleString()}<span>원</span></div>
+                    <a href="http://pf.kakao.com/_xmgiwn/chat" class="btn-primary">📝 온라인 접수하기</a>
+                </div>
+            </div>
+        `;
+    }
+
+    function render() {
+        const grid = document.getElementById('priceGrid');
+        const filtered = rawData.filter(item => {
+            const matchCarrier = (state.carrier === 'ALL' || item.carrier === state.carrier);
+            const matchSearch = item.model.toLowerCase().includes(state.search.toLowerCase());
+            return matchCarrier && matchSearch;
+        });
+        grid.innerHTML = filtered.map(item => createCard(item)).join('');
+    }
+
+    document.getElementById('carrierFilter').addEventListener('click', (e) => {
+        if (!e.target.classList.contains('chip')) return;
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        e.target.classList.add('active');
+        state.carrier = e.target.dataset.carrier;
+        render();
+    });
+
+    document.getElementById('modelSearch').addEventListener('input', (e) => {
+        state.search = e.target.value;
+        render();
+    });
+
+    fetchData();
+</script>
+</body>
+</html>
