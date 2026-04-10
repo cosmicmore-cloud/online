@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>알고모바일 | 온라인 통합 시세표</title>
+    <title>알고모바일 | 실시간 통합 시세표</title>
     <style>
         :root {
             --primary: #3182F6; --text: #191F28; --sub: #6B7684;
@@ -14,8 +14,11 @@
         body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 100px; }
         .container { max-width: 1000px; margin: 0 auto; padding: 0 16px; }
 
-        .topbar { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 15px 0; }
-        .brand { font-weight: 900; font-size: 22px; text-align: center; color: var(--primary); }
+        /* 상단바 수정: 전화번호 추가 */
+        .topbar { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 12px 0; }
+        .topbar .inner { display: flex; justify-content: space-between; align-items: center; }
+        .brand { font-weight: 900; font-size: 20px; color: var(--primary); }
+        .contact-top { font-size: 14px; font-weight: 700; color: #4E5968; text-decoration: none; }
 
         .filter-card { background: var(--card); border-radius: var(--radius); padding: 24px; border: 1px solid var(--border); box-shadow: var(--shadow); margin: 20px 0; }
         .filter-group { margin-bottom: 20px; }
@@ -45,13 +48,27 @@
         .price-value span { font-size: 18px; font-weight: 800; margin-left: 1px; }
 
         .btn-apply { display: block; width: 100%; background: var(--primary); color: #fff; text-align: center; padding: 16px; border-radius: 14px; font-weight: 800; text-decoration: none; margin-top: 20px; font-size: 16px; }
+
+        /* 하단 푸터 공지 */
+        .footer-notice { margin-top: 30px; padding: 20px; background: #fff; border-radius: var(--radius); border: 1px solid var(--border); font-size: 13px; color: var(--sub); line-height: 1.6; }
+
+        /* 카톡 플로팅 버튼 */
+        .kakao-float { position: fixed; bottom: 30px; right: 20px; z-index: 1000; display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; background: #FEE500; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.3s; }
+        .kakao-float:hover { transform: scale(1.1); }
+        .kakao-float img { width: 30px; height: 30px; }
+
         #loading { text-align: center; padding: 100px 0; font-weight: bold; color: var(--sub); }
     </style>
 </head>
 <body>
 
 <div class="topbar">
-    <div class="container"><div class="brand">ALGO ONLINE 🚀</div></div>
+    <div class="container">
+        <div class="inner">
+            <div class="brand">ALGO ONLINE 🚀</div>
+            <a href="tel:0507-1489-8211" class="contact-top">📞 0507-1489-8211</a>
+        </div>
+    </div>
 </div>
 
 <div class="container">
@@ -71,17 +88,27 @@
                 <button class="chip" data-val="MNP">번호이동</button>
             </div>
         </div>
-        <input type="text" id="modelSearch" class="search-input" placeholder="모델명 검색 (예: S26, 아이폰)">
+        <input type="text" id="modelSearch" class="search-input" placeholder="모델명이나 용량을 검색하세요">
     </div>
 
-    <div id="loading">데이터를 불러오고 있습니다...</div>
+    <div id="loading">데이터 동기화 중...</div>
     <div id="priceGrid" class="grid"></div>
+
+    <div class="footer-notice">
+        ※ 모든 단가는 <b>현금완납</b> 기준이며, 할부 개통 시 별도 문의 바랍니다.<br>
+        ※ 실시간 정책에 따라 조기 마감될 수 있습니다.<br><br>
+        <b>☎ 문의 센터 : 0507-1489-8211</b> (평일 10:00 ~ 19:00)
+    </div>
 </div>
 
+<a href="http://pf.kakao.com/_xmgiwn/chat" target="_blank" class="kakao-float">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e3/KakaoTalk_logo.svg" alt="카톡상담">
+</a>
+
 <script>
-    // 공유해주신 시트 ID 적용
     const SHEET_ID = '1gj6rdMXBkvkgo0wx6o9XCm_7MjdRJOhjlkzgAWAmiCY';
     const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&t=${new Date().getTime()}`;
+    const KAKAO_CHAT_URL = "http://pf.kakao.com/_xmgiwn/chat";
 
     let allData = [];
     let state = { carrier: 'SKT', type: 'KOT', search: '' };
@@ -90,7 +117,7 @@
         const loading = document.getElementById('loading');
         try {
             const res = await fetch(CSV_URL);
-            if (!res.ok) throw new Error("시트 연결 실패 (웹에 게시 여부 확인)");
+            if (!res.ok) throw new Error("시트 연결 실패");
             
             const text = await res.text();
             const rows = text.split('\n').map(row => {
@@ -98,13 +125,10 @@
                 return row.split(regex).map(cell => cell.replace(/"/g, '').trim());
             });
 
-            // 1. "모델명" 글자가 있는 진짜 제목줄 찾기
             const headerIndex = rows.findIndex(r => r.some(cell => cell.includes("모델명")));
-            if (headerIndex === -1) throw new Error("시트에서 '모델명' 제목줄을 찾을 수 없습니다.");
+            if (headerIndex === -1) throw new Error("헤더 없음");
             
             const header = rows[headerIndex];
-            
-            // 2. 제목 기반으로 데이터 위치 자동 매핑 (데이터 밀림 방지)
             const idx = {
                 model: header.findIndex(h => h.includes("모델명")),
                 mnp: header.findIndex(h => h.includes("번호이동가")),
@@ -115,7 +139,6 @@
                 url: header.findIndex(h => h.includes("신청서링크"))
             };
 
-            // 3. 데이터 저장
             allData = rows.slice(headerIndex + 1)
                 .filter(cols => cols[idx.model] && cols[idx.model] !== "")
                 .map(cols => ({
@@ -125,20 +148,19 @@
                     carrier: cols[idx.carrier],
                     storage: cols[idx.storage],
                     plan: cols[idx.plan],
-                    url: cols[idx.url]
+                    url: cols[idx.url] || KAKAO_CHAT_URL // 링크가 없으면 카톡상담으로 연결
                 }));
 
             loading.style.display = 'none';
             render();
         } catch (e) {
-            loading.innerText = "❌ 로딩 실패: " + e.message;
+            loading.innerText = "❌ 데이터 로딩 실패";
         }
     }
 
     function render() {
         const grid = document.getElementById('priceGrid');
         const filtered = allData.filter(item => {
-            // 통신사 필터링 (SKT, KT, LGU+)
             const carrierMatch = item.carrier === state.carrier;
             const searchMatch = item.model.toLowerCase().includes(state.search.toLowerCase());
             return carrierMatch && searchMatch;
@@ -174,7 +196,6 @@
         }).join('');
     }
 
-    // 필터 클릭 이벤트
     document.getElementById('carrierFilter').onclick = e => {
         if (!e.target.classList.contains('chip')) return;
         document.querySelectorAll('#carrierFilter .chip').forEach(c => c.classList.remove('active'));
@@ -198,5 +219,6 @@
 
     fetchData();
 </script>
+<img src='https://gi.esmplus.com/awaterwave/%EC%8A%B9%EB%82%99.png' />
 </body>
 </html>
