@@ -3,206 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>알고모바일 | 온라인·택배 실시간 시세표</title>
+    <title>알고모바일 | 온라인 통합 시세표</title>
     <style>
         :root {
             --primary: #3182F6; --text: #191F28; --sub: #6B7684;
             --bg: #F5F6F8; --card: #FFFFFF; --border: #E5E8EB;
-            --point: #D32F2F; /* 강조용 레드 */
-            --radius: 18px; --shadow: 0 8px 24px rgba(0,0,0,.06);
+            --radius: 20px; --shadow: 0 8px 24px rgba(0,0,0,.06);
         }
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 100px; }
-        .container { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 0 16px; }
 
-        .topbar { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,.9); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
-        .topbar .inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
-        .brand { font-weight: 900; font-size: 20px; display: flex; align-items: center; gap: 8px; }
-        .brand .logo { width: 24px; height: 24px; background: var(--primary); border-radius: 6px; }
+        .topbar { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 15px 0; }
+        .brand { font-weight: 900; font-size: 22px; text-align: center; color: var(--primary); }
 
-        .section { padding: 20px 0; }
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; }
+        .filter-card { background: var(--card); border-radius: var(--radius); padding: 24px; border: 1px solid var(--border); box-shadow: var(--shadow); margin: 20px 0; }
+        .filter-group { margin-bottom: 20px; }
+        .filter-label { font-size: 13px; font-weight: 700; color: var(--sub); margin-bottom: 10px; display: block; }
         
-        /* 상단 긴급 공지 스타일 */
-        .top-notice { background: #fffbe6; border: 1px solid #ffe58f; padding: 12px; border-radius: 12px; margin-bottom: 15px; font-size: 14px; font-weight: bold; color: #856404; text-align: center; }
-
-        .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
-        .chip { border: 1px solid var(--border); background: #fff; padding: 10px 20px; border-radius: 999px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+        .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .chip { border: 1px solid var(--border); background: #fff; padding: 10px 18px; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 14px; color: #4E5968; transition: 0.2s; }
         .chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-
-        .search-input { width: 100%; border: 1px solid var(--border); border-radius: 14px; padding: 15px; margin-top: 15px; font-weight: 700; font-size: 16px; outline: none; }
-
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-top: 20px; }
-        .p-card { display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
         
-        /* 카드 상단 핵심 문구 배지 */
-        .badge-row { display: flex; gap: 6px; margin-bottom: 15px; flex-wrap: wrap; }
-        .badge { font-size: 11px; padding: 5px 10px; border-radius: 6px; font-weight: 900; }
-        .badge.carrier { background: #f0f0f0; color: #555; }
-        .badge.point { background: #fff1f0; color: var(--point); border: 1px solid #ffa39e; }
-        .badge.yellow { background: #feffe6; color: #856404; border: 1px solid #ffe58f; }
+        .search-input { width: 100%; border: 2px solid var(--border); border-radius: 14px; padding: 15px; font-size: 16px; outline: none; font-weight: 700; }
 
-        .model { font-size: 22px; font-weight: 900; margin: 0 0 10px; letter-spacing: -0.5px; }
-        .meta { font-size: 14px; color: var(--sub); line-height: 1.6; margin-bottom: 15px; padding: 12px; background: #f9fafb; border-radius: 10px; }
-        .meta b { color: #333; }
-
-        .price-label { font-size: 13px; color: var(--sub); font-weight: bold; margin-bottom: 2px; }
-        .price { font-size: 36px; font-weight: 1000; color: var(--text); letter-spacing: -1.5px; margin-bottom: 20px; }
-        .price span { font-size: 18px; font-weight: 800; margin-left: 2px; }
-
-        .btn-primary { display: block; width: 100%; background: var(--primary); color: #fff; text-align: center; padding: 18px; border-radius: 16px; font-weight: 800; text-decoration: none; font-size: 17px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+        .p-card { background: #fff; border-radius: var(--radius); border: 1px solid var(--border); padding: 24px; display: flex; flex-direction: column; transition: 0.3s; height: 100%; }
+        .p-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
         
-        .bottom-cta { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-top: 1px solid var(--border); padding: 16px; z-index: 100; }
+        .badge-row { display: flex; gap: 6px; margin-bottom: 12px; }
+        .badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; font-weight: 800; background: #F2F4F6; color: #4E5968; }
+        .badge.carrier { background: #E8F3FF; color: var(--primary); }
 
-        @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } .hero-title { font-size: 24px; } }
+        .model-name { font-size: 20px; font-weight: 900; margin-bottom: 12px; color: #191F28; }
+        .info-box { background: #F9FAFB; border-radius: 12px; padding: 14px; font-size: 13px; color: var(--sub); margin-bottom: 20px; border: 1px solid #f0f0f0; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+        .info-row b { color: #333; }
+
+        .price-label { font-size: 12px; color: var(--sub); font-weight: bold; margin-bottom: 2px; }
+        .price-value { font-size: 36px; font-weight: 1000; color: #191F28; letter-spacing: -1px; }
+        .price-value span { font-size: 18px; font-weight: 800; margin-left: 1px; }
+
+        .btn-apply { display: block; width: 100%; background: var(--primary); color: #fff; text-align: center; padding: 16px; border-radius: 14px; font-weight: 800; text-decoration: none; margin-top: 20px; font-size: 16px; }
+        #loading { text-align: center; padding: 100px 0; font-weight: bold; color: var(--sub); }
     </style>
 </head>
-<!-- 카톡 상담 플로팅 버튼 및 모달 -->
-<div id="kakao-floating-area" style="position: fixed; bottom: 100px; right: 20px; z-index: 1000;">
-    <!-- 말풍선 가이드 (3초 후 자동으로 나타남) -->
-    <div id="kakao-guide" style="display:none; position: absolute; bottom: 70px; right: 0; width: 180px; background: #fff; border: 1px solid #ddd; padding: 12px; border-radius: 15px; box-shadow: var(--shadow); font-size: 13px; font-weight: bold; line-height: 1.4;">
-        <span style="color:var(--primary);">알고모바일</span> 상담원과<br>실시간 톡 시작하기!
-        <div style="position: absolute; bottom: -8px; right: 20px; width: 15px; height: 15px; background: #fff; border-right: 1px solid #ddd; border-bottom: 1px solid #ddd; transform: rotate(45deg);"></div>
-    </div>
-
-    <!-- 메인 버튼 -->
-    <a href="http://pf.kakao.com/_sdYlu/chat" target="_blank" id="kakao-main-btn" style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; background: #FEE500; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: transform 0.3s; text-decoration: none;">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e3/KakaoTalk_logo.svg" style="width: 32px; height: 32px;" alt="카톡상담">
-    </a>
-</div>
-
-<script>
-    // 페이지 로드 2초 후 말풍선 띄우기
-    window.addEventListener('load', function() {
-        setTimeout(function() {
-            const guide = document.getElementById('kakao-guide');
-            if(guide) guide.style.display = 'block';
-        }, 2000);
-    });
-
-    // 버튼 호버 효과
-    const kakaoBtn = document.getElementById('kakao-main-btn');
-    kakaoBtn.addEventListener('mouseenter', () => kakaoBtn.style.transform = 'scale(1.1)');
-    kakaoBtn.addEventListener('mouseleave', () => kakaoBtn.style.transform = 'scale(1.0)');
-</script>
 <body>
 
 <div class="topbar">
-    <div class="container">
-        <div class="inner">
-            <div class="brand"><div class="logo"></div> ALGO ONLINE</div>
-            <div style="font-size: 13px; font-weight: bold; color: var(--sub);">전국 당일 택배 전문</div>
-        </div>
-    </div>
+    <div class="container"><div class="brand">ALGO ONLINE 🚀</div></div>
 </div>
 
 <div class="container">
-    <section class="section">
-        <div class="top-notice">📢 제휴카드 조건X / 기기반납X / 눈속임 없는 실구매가 정찰제</div>
-        <div class="card">
-            <h2 style="margin:0; font-size:22px; font-weight:950; letter-spacing:-0.5px;">오늘의 온라인 특가</h2>
+    <div class="filter-card">
+        <div class="filter-group">
+            <span class="filter-label">1. 통신사 선택</span>
             <div class="chips" id="carrierFilter">
-                <button class="chip active" data-carrier="ALL">전체</button>
-                <button class="chip" data-carrier="SKT">SKT</button>
-                <button class="chip" data-carrier="KT">KT</button>
-                <button class="chip" data-carrier="LGU+">LGU+</button>
+                <button class="chip active" data-val="SKT">SKT</button>
+                <button class="chip" data-val="KT">KT</button>
+                <button class="chip" data-val="LGU+">LGU+</button>
             </div>
-            <input type="text" id="modelSearch" class="search-input" placeholder="모델명이나 용량을 검색하세요">
         </div>
-    </section>
+        <div class="filter-group">
+            <span class="filter-label">2. 가입유형 선택</span>
+            <div class="chips" id="typeFilter">
+                <button class="chip active" data-val="KOT">기기변경</button>
+                <button class="chip" data-val="MNP">번호이동</button>
+            </div>
+        </div>
+        <input type="text" id="modelSearch" class="search-input" placeholder="모델명 검색 (예: S26, 아이폰)">
+    </div>
 
-    <div id="loading" style="text-align:center; padding:80px 0; font-weight:bold; color:var(--sub);">최신 단가 동기화 중...</div>
+    <div id="loading">데이터를 불러오고 있습니다...</div>
     <div id="priceGrid" class="grid"></div>
-    
-    <div style="margin-top:30px; padding:20px; color:var(--sub); font-size:13px; line-height:1.7;">
-        ※ 모든 단가는 <b>현금완납</b> 기준이며, 할부 개통 시 별도 문의 바랍니다.<br>
-        ※ 부가서비스 유지 기간 미준수 시 위약금이 발생할 수 있습니다.<br>
-        ※ 실시간 정책에 따라 조기 마감될 수 있습니다.
-    </div>
-</div>
-
-<div class="bottom-cta">
-    <div class="container">
-        <a href="http://pf.kakao.com/_xmgiwn/chat" target="_blank" class="btn-primary">카톡으로 재고 확인 및 접수</a>
-    </div>
 </div>
 
 <script>
-    const SPREADSHEET_ID = '1BLu38wjfsMwRk9wp5jnlE-3mlqb-_mZzp0i-Z_fdoXw'; 
-    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
+    // 공유해주신 시트 ID 적용
+    const SHEET_ID = '1gj6rdMXBkvkgo0wx6o9XCm_7MjdRJOhjlkzgAWAmiCY';
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&t=${new Date().getTime()}`;
 
-    let rawData = [];
-    let state = { carrier: 'ALL', search: '' };
+    let allData = [];
+    let state = { carrier: 'SKT', type: 'KOT', search: '' };
 
     async function fetchData() {
+        const loading = document.getElementById('loading');
         try {
-            const response = await fetch(CSV_URL);
-            const text = await response.text();
-            const rows = text.split('\n').map(row => row.replace(/"/g, '').split(','));
+            const res = await fetch(CSV_URL);
+            if (!res.ok) throw new Error("시트 연결 실패 (웹에 게시 여부 확인)");
             
-            rawData = rows.slice(1).map(cols => ({
-                model: cols[0],
-                price: cols[1], 
-                carrier: cols[3] || 'SKT', 
-                storage: cols[4] || '256G',
-                plan: cols[5] || '기본요금제',
-                addon: cols[6] || '해당없음'
-            })).filter(item => item.model && item.model.trim() !== "");
+            const text = await res.text();
+            const rows = text.split('\n').map(row => {
+                const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
+                return row.split(regex).map(cell => cell.replace(/"/g, '').trim());
+            });
 
-            document.getElementById('loading').style.display = 'none';
+            // 1. "모델명" 글자가 있는 진짜 제목줄 찾기
+            const headerIndex = rows.findIndex(r => r.some(cell => cell.includes("모델명")));
+            if (headerIndex === -1) throw new Error("시트에서 '모델명' 제목줄을 찾을 수 없습니다.");
+            
+            const header = rows[headerIndex];
+            
+            // 2. 제목 기반으로 데이터 위치 자동 매핑 (데이터 밀림 방지)
+            const idx = {
+                model: header.findIndex(h => h.includes("모델명")),
+                mnp: header.findIndex(h => h.includes("번호이동가")),
+                kot: header.findIndex(h => h.includes("기기변경가")),
+                carrier: header.findIndex(h => h.includes("통신사")),
+                storage: header.findIndex(h => h.includes("용량")),
+                plan: header.findIndex(h => h.includes("요금제")),
+                url: header.findIndex(h => h.includes("신청서링크"))
+            };
+
+            // 3. 데이터 저장
+            allData = rows.slice(headerIndex + 1)
+                .filter(cols => cols[idx.model] && cols[idx.model] !== "")
+                .map(cols => ({
+                    model: cols[idx.model],
+                    priceMNP: cols[idx.mnp],
+                    priceKOT: cols[idx.kot],
+                    carrier: cols[idx.carrier],
+                    storage: cols[idx.storage],
+                    plan: cols[idx.plan],
+                    url: cols[idx.url]
+                }));
+
+            loading.style.display = 'none';
             render();
-        } catch (err) {
-            document.getElementById('loading').innerText = '데이터 로드 실패';
+        } catch (e) {
+            loading.innerText = "❌ 로딩 실패: " + e.message;
         }
-    }
-
-    function createCard(item) {
-        return `
-            <div class="card p-card">
-                <div>
-                    <div class="badge-row">
-                        <span class="badge carrier">${item.carrier}</span>
-                        <span class="badge point">현금완납</span>
-                        <span class="badge yellow">제휴카드X</span>
-                        <span class="badge carrier">${item.storage}</span>
-                    </div>
-                    <div class="model">${item.model}</div>
-                    <div class="meta">
-                        <b>요금제:</b> ${item.plan}<br>
-                        <b>부가서비스:</b> ${item.addon}
-                    </div>
-                </div>
-                <div>
-                    <div class="price-label">최종 결제금액</div>
-                    <div class="price">${Number(item.price).toLocaleString()}<span>원</span></div>
-                    <a href="http://pf.kakao.com/_xmgiwn/chat" class="btn-primary">📝 온라인 접수하기</a>
-                </div>
-            </div>
-        `;
     }
 
     function render() {
         const grid = document.getElementById('priceGrid');
-        const filtered = rawData.filter(item => {
-            const matchCarrier = (state.carrier === 'ALL' || item.carrier === state.carrier);
-            const matchSearch = item.model.toLowerCase().includes(state.search.toLowerCase());
-            return matchCarrier && matchSearch;
+        const filtered = allData.filter(item => {
+            // 통신사 필터링 (SKT, KT, LGU+)
+            const carrierMatch = item.carrier === state.carrier;
+            const searchMatch = item.model.toLowerCase().includes(state.search.toLowerCase());
+            return carrierMatch && searchMatch;
         });
-        grid.innerHTML = filtered.map(item => createCard(item)).join('');
+
+        if(filtered.length === 0) {
+            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px;">해당 조건의 모델이 없습니다.</div>';
+            return;
+        }
+
+        grid.innerHTML = filtered.map(item => {
+            const price = state.type === 'KOT' ? item.priceKOT : item.priceMNP;
+            const typeLabel = state.type === 'KOT' ? '기기변경' : '번호이동';
+            
+            return `
+                <div class="p-card">
+                    <div class="badge-row">
+                        <span class="badge carrier">${item.carrier}</span>
+                        <span class="badge">${item.storage}</span>
+                    </div>
+                    <div class="model-name">${item.model}</div>
+                    <div class="info-box">
+                        <div class="info-row"><span>가입유형</span><b>${typeLabel}</b></div>
+                        <div class="info-row"><span>요금제</span><b>${item.plan}</b></div>
+                    </div>
+                    <div style="margin-top:auto">
+                        <div class="price-label">실구매가 (현금완납)</div>
+                        <div class="price-value">${price || '문의'}<span>만원</span></div>
+                        <a href="${item.url}" target="_blank" class="btn-apply">재고 확인 및 상담</a>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
 
-    document.getElementById('carrierFilter').addEventListener('click', (e) => {
+    // 필터 클릭 이벤트
+    document.getElementById('carrierFilter').onclick = e => {
         if (!e.target.classList.contains('chip')) return;
-        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('#carrierFilter .chip').forEach(c => c.classList.remove('active'));
         e.target.classList.add('active');
-        state.carrier = e.target.dataset.carrier;
+        state.carrier = e.target.dataset.val;
         render();
-    });
+    };
 
-    document.getElementById('modelSearch').addEventListener('input', (e) => {
+    document.getElementById('typeFilter').onclick = e => {
+        if (!e.target.classList.contains('chip')) return;
+        document.querySelectorAll('#typeFilter .chip').forEach(c => c.classList.remove('active'));
+        e.target.classList.add('active');
+        state.type = e.target.dataset.val;
+        render();
+    };
+
+    document.getElementById('modelSearch').oninput = e => {
         state.search = e.target.value;
         render();
-    });
+    };
 
     fetchData();
 </script>
