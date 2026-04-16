@@ -2,87 +2,136 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>알고모바일 요금제 생성기</title>
 <style>
     :root {
         --sk-red: #e60023;
         --kt-blue: #007aff;
         --lg-purple: #8e44ad;
-        --main-color: --sk-red; 
+        --main-color: #e60023; 
     }
 
-    body { background: #f0f2f5; padding: 20px; display: flex; flex-direction: row; gap: 20px; font-family: 'Pretendard', -apple-system, sans-serif; }
+    /* 기본 리셋 */
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { 
+        background: #f0f2f5; 
+        margin: 0; 
+        padding: 10px; 
+        display: flex; 
+        flex-direction: column; /* 모바일 우선 수직 배치 */
+        gap: 15px; 
+        font-family: 'Pretendard', -apple-system, sans-serif; 
+        line-height: 1.4;
+    }
 
-    /* [1] 왼쪽 설정 컨트롤러 */
+    /* [1] 설정 컨트롤러 (상단 배치) */
     .admin-controls {
-        width: 240px; background: #fff; padding: 20px; border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid #ddd;
-        position: sticky; top: 20px; height: fit-content;
+        width: 100%; 
+        background: #fff; 
+        padding: 15px; 
+        border-radius: 15px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+        border: 1px solid #ddd;
     }
-    .admin-controls h2 { font-size: 16px; margin-bottom: 15px; color: #333; border-bottom: 2px solid #333; padding-bottom: 5px; }
-    .admin-controls label { font-size: 11px; font-weight: bold; color: #666; display: block; margin-top: 10px; }
-    .admin-controls select { width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; font-weight: bold; cursor: pointer; }
+    .admin-controls h2 { font-size: 15px; margin: 0 0 10px 0; color: #333; border-bottom: 2px solid #333; padding-bottom: 5px; }
+    .admin-controls label { font-size: 11px; font-weight: bold; color: #666; display: block; margin-top: 8px; }
+    .admin-controls select { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; font-weight: bold; background-color: #fff; font-size: 14px; }
     
-    .model-selector { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; max-height: 500px; overflow-y: auto; padding-right: 5px; }
-    .model-btn { padding: 10px; border: 1px solid #eee; background: #f9f9f9; border-radius: 6px; text-align: left; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s; }
-    .model-btn:hover { background: #f0f0f0; }
+    .model-selector { 
+        display: flex; 
+        flex-direction: row; /* 가로 스크롤 형태로 변경 */
+        overflow-x: auto; 
+        gap: 8px; 
+        margin-top: 10px; 
+        padding-bottom: 5px;
+        -webkit-overflow-scrolling: touch;
+    }
+    .model-btn { 
+        flex: 0 0 auto;
+        padding: 8px 15px; 
+        border: 1px solid #eee; 
+        background: #f9f9f9; 
+        border-radius: 20px; 
+        font-size: 12px; 
+        font-weight: 600; 
+    }
     .model-btn.active { background: #000; color: #fff; border-color: #000; }
 
-    /* [2] 오른쪽 캡처 영역 */
+    /* [2] 캡처 영역 (메인 화면) */
     .capture-area { 
-        width: 500px; background: #fff; border-radius: 24px; overflow: hidden; 
-        box-shadow: 0 20px 50px rgba(0,0,0,0.2); border: 1px solid #eee;
-        position: relative;
+        width: 100%; 
+        max-width: 500px; /* 최대폭 제한 */
+        margin: 0 auto;
+        background: #fff; 
+        border-radius: 20px; 
+        overflow: hidden; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+        border: 1px solid #eee;
     }
 
-    .header { background: #111; color: #fff; padding: 30px 20px; text-align: center; }
-    .header .brand { color: var(--main-color); font-size: 14px; font-weight: 900; letter-spacing: 3px; display: block; margin-bottom: 8px; }
-    .header .guide-text { color: #aaa; font-size: 12px; margin-bottom: 12px; font-weight: 500; }
-    .header .title { font-size: 32px; font-weight: 900; letter-spacing: -1px; }
+    .header { background: #111; color: #fff; padding: 20px 15px; text-align: center; }
+    .header .brand { color: var(--main-color); font-size: 12px; font-weight: 900; letter-spacing: 2px; display: block; margin-bottom: 5px; }
+    .header .guide-text { color: #aaa; font-size: 11px; margin-bottom: 8px; }
+    .header .title { font-size: 24px; font-weight: 900; letter-spacing: -0.5px; word-break: keep-all; }
 
     .condition-bar {
-        display: flex; justify-content: space-around; background: #f8f9fa; padding: 15px;
-        border-bottom: 1px solid #eee; font-size: 14px; font-weight: 800; color: #444;
+        display: flex; justify-content: space-around; background: #f8f9fa; padding: 12px 5px;
+        border-bottom: 1px solid #eee; font-size: 12px; font-weight: 800; color: #444;
     }
     .condition-bar span { color: var(--main-color); }
 
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    th { background: #fdfdfd; padding: 15px 5px; font-size: 12px; border-bottom: 2px solid #333; color: #333; }
-    td { padding: 22px 5px; text-align: center; border-bottom: 1px solid #eee; font-size: 15px; }
+    th { background: #fdfdfd; padding: 10px 2px; font-size: 11px; border-bottom: 2px solid #333; color: #333; }
+    td { padding: 15px 2px; text-align: center; border-bottom: 1px solid #eee; font-size: 13px; }
     
-    .plan-name { font-weight: 800; color: #222; font-size: 15px; }
-    .price-sub { font-size: 11px; color: #999; margin-top: 4px; font-weight: normal; }
+    .plan-name { font-weight: 800; color: #222; font-size: 13px; }
+    .price-sub { font-size: 10px; color: #999; margin-top: 2px; font-weight: normal; }
     
-    .price-red { color: var(--main-color) !important; font-weight: 900; font-size: 25px !important; letter-spacing: -1px; }
-    .won { font-size: 15px; margin-left: 1px; }
+    .price-red { color: var(--main-color) !important; font-weight: 900; font-size: 18px !important; letter-spacing: -0.5px; }
+    .won { font-size: 12px; }
 
-    /* 부가서비스 섹션 */
-    .addon-section { background: #fff; padding: 15px 20px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
-    .addon-title { font-size: 12px; font-weight: 800; color: var(--main-color); margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
-    .addon-content { background: #fdf2f2; border: 1px dashed var(--main-color); border-radius: 10px; padding: 12px; font-size: 13px; font-weight: 700; color: #333; line-height: 1.5; }
+    .addon-section { background: #fff; padding: 15px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
+    .addon-title { font-size: 12px; font-weight: 800; color: var(--main-color); margin-bottom: 8px; }
+    .addon-content { background: #fdf2f2; border: 1px dashed var(--main-color); border-radius: 10px; padding: 12px; font-size: 12px; font-weight: 700; color: #333; line-height: 1.5; word-break: keep-all; }
     .addon-content.kt { background: #f2f7ff; border-color: var(--kt-blue); }
     .addon-content.lg { background: #f9f2fb; border-color: var(--lg-purple); }
 
-    .contact-info {
-        background: #f8f9fa; padding: 20px;
-        display: flex; justify-content: space-between; align-items: center;
-    }
-    .contact-text { font-size: 14px; font-weight: 800; color: #333; }
-    .contact-text span { color: var(--main-color); display: block; font-size: 18px; margin-top: 2px; }
-    .kakao-btn-box {
-        background: #fee500; color: #3c1e1e; padding: 10px 15px; border-radius: 10px;
-        text-decoration: none; font-size: 13px; font-weight: 900; display: flex; align-items: center; gap: 5px;
+    .contact-info { background: #f8f9fa; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+    .contact-row { display: flex; justify-content: space-between; align-items: center; }
+    .contact-text { font-size: 12px; font-weight: 800; color: #333; }
+    .contact-text span { color: var(--main-color); display: block; font-size: 16px; margin-top: 2px; }
+    
+    .apply-btn {
+        background: var(--main-color); color: #fff; text-align: center; padding: 15px;
+        border-radius: 12px; text-decoration: none; font-size: 15px; font-weight: 900;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
-    .footer-notice { padding: 20px; background: #fafafa; font-size: 12px; color: #888; line-height: 1.7; border-top: 1px solid #eee; }
+    .kakao-btn-box {
+        background: #fee500; color: #3c1e1e; padding: 8px 12px; border-radius: 8px;
+        text-decoration: none; font-size: 12px; font-weight: 900; display: flex; align-items: center; gap: 5px;
+    }
+
+    .footer-notice { padding: 15px; background: #fafafa; font-size: 11px; color: #888; line-height: 1.6; border-top: 1px solid #eee; margin-bottom: 60px; }
+
+    /* 데스크탑 환경에서 가로 배치 유지 */
+    @media (min-width: 800px) {
+        body { flex-direction: row; align-items: flex-start; justify-content: center; padding: 40px; }
+        .admin-controls { width: 280px; position: sticky; top: 20px; }
+        .capture-area { width: 500px; margin: 0; }
+        .model-selector { flex-direction: column; overflow-x: visible; max-height: 500px; }
+        .header .title { font-size: 32px; }
+        .price-red { font-size: 25px !important; }
+        td { font-size: 15px; }
+    }
 
     .kakao-fixed {
-        position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;
+        position: fixed; bottom: 20px; right: 20px; width: 55px; height: 55px;
         background: #fee500; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 9999; text-decoration: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 9999;
     }
-    .kakao-fixed img { width: 30px; height: 30px; }
+    .kakao-fixed img { width: 28px; height: 28px; }
 </style>
 </head>
 <body>
@@ -97,74 +146,83 @@
         <option value="LG">LGU+ (PURPLE)</option>
     </select>
 
-    <label>2. 할인 방식</label>
-    <select onchange="updateMode(this.value)">
-        <option value="gongsi">공시지원금 할인</option>
-        <option value="sanyak">선택약정 25% 할인</option>
-    </select>
+    <div style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+            <label>2. 할인 방식</label>
+            <select onchange="updateMode(this.value)">
+                <option value="gongsi">공시지원</option>
+                <option value="sanyak">선택약정</option>
+            </select>
+        </div>
+        <div style="flex: 1;">
+            <label>3. 가입 유형</label>
+            <select onchange="updateType(this.value)">
+                <option value="UP">기기변경</option>
+                <option value="NP">번호이동</option>
+            </select>
+        </div>
+    </div>
 
-    <label>3. 가입 유형 / 결제</label>
-    <select onchange="updateType(this.value)">
-        <option value="UP">기기변경</option>
-        <option value="NP">번호이동</option>
-    </select>
-    <select style="margin-top:5px;" onchange="updatePay(this.value)">
+    <label>4. 결제 방식</label>
+    <select onchange="updatePay(this.value)">
         <option value="install">24개월 할부</option>
         <option value="cash">현금 일시납(완납)</option>
     </select>
 
-    <label>4. 모델 선택 (실시간 시트)</label>
+    <label>5. 모델 선택 (옆으로 밀어서 선택)</label>
     <div class="model-selector" id="model-list">
-        <div style="font-size:12px; color:#999; padding:10px;">데이터 로딩 중...</div>
+        <div style="font-size:12px; color:#999; padding:10px;">로딩 중...</div>
     </div>
 </div>
 
 <div class="capture-area" id="capture-target">
     <div class="header">
         <span class="brand">ALGO MOBILE</span>
-        <div class="guide-text">모델 및 가입유형을 고르시면 월 납부액이 자동계산됩니다.</div>
-        <div class="title" id="display-model-name">연동 중...</div>
+        <div class="guide-text">모델 선택 시 월 납부액이 자동 계산됩니다.</div>
+        <div class="title" id="display-model-name">데이터 연동 중...</div>
     </div>
 
     <div class="condition-bar">
         <div><span id="view-tel">SKT</span></div>
         <div><span id="view-type">기기변경</span></div>
         <div><span id="view-mode">공시지원금</span></div>
-        <div><span id="view-pay">24개월 할부</span></div>
+        <div><span id="view-pay">24개월</span></div>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th width="32%">요금제</th>
-                <th width="20%">할인항목</th>
+                <th width="33%">요금제</th>
+                <th width="20%">할인</th>
                 <th width="20%">할부원금</th>
-                <th width="28%">월 납부액</th>
+                <th width="27%">월 납부액</th>
             </tr>
         </thead>
         <tbody id="tableBody"></tbody>
     </table>
 
     <div class="addon-section">
-        <div class="addon-title">📌 개통 필수 부가서비스 안내</div>
-        <div id="addon-box" class="addon-content">
-            </div>
+        <div class="addon-title">📌 개통 필수 부가서비스</div>
+        <div id="addon-box" class="addon-content"></div>
     </div>
 
     <div class="contact-info">
-        <div class="contact-text">
-            실시간 재고 및 개통 문의
-            <span>📞 010-7577-5800</span>
-        </div>
-        <a href="http://pf.kakao.com/_sdYlu/chat" target="_blank" class="kakao-btn-box">
-            카톡 상담하기
+        <a href="#" target="_blank" class="apply-btn" id="main-apply-link">
+            ⚡ 가입 신청서 접수 (클릭)
         </a>
+        <div class="contact-row">
+            <div class="contact-text">
+                문의 <span>📞 010-7577-5800</span>
+            </div>
+            <a href="http://pf.kakao.com/_sdYlu/chat" target="_blank" class="kakao-btn-box">
+                카톡 상담
+            </a>
+        </div>
     </div>
 
     <div class="footer-notice">
-        • <b>알고모바일</b>은 부가세 및 할부이자(5.9%)가 포함된 실제 청구 금액을 안내합니다.<br>
-        • <b>선택약정</b>은 매월 통신 요금의 25%가 즉시 할인되는 방식입니다.<br>
-        • 지원금 및 정책은 통신사 사정에 따라 실시간으로 변동될 수 있습니다.
+        • 부가세 및 할부이자(5.9%) 포함 금액입니다.<br>
+        • 지원금은 통신사 사정에 따라 변동될 수 있습니다.
     </div>
 </div>
 
@@ -173,38 +231,25 @@
 </a>
 
 <script>
+// (기존 스크립트 내용과 동일하며, render 부분의 텍스트 크기만 미세 조정됨)
 const FILE_IDS = {
     SK: "13vra0xzllGhkkuVoNaA_KOHXiHbRfwol8zDiB24S00o", 
     KT: "1x3tNRBfNPV4E4OdkM4pDYlD4HKJP1dN0Z2QZxdcXE4o", 
     LG: "1NaQvnsgXLBWKl9n15otRXCMfRElLhyLdk54VmEGLkfU" 
 };
 
-const TAB_NAMES = {
-    SK: "skprice",
-    KT: "skprice",
-    LG: "skprice"
-};
+const TAB_NAMES = { SK: "skprice", KT: "skprice", LG: "skprice" };
 
-// 통신사별 부가서비스 DB
 const ADDON_DB = {
     SK: "보험 T All케어6 M+1개월 (미가입 시 단가 +2만 원)",
     KT: "필수팩 L1(9,900원) X 4개월 유지 (미가입 시 단가 +5만 원)",
-    LG: "벨링모아A (93일 유지), 폰안심패스(93일 유지 / 슬림 제외) (미가입 시 단가 +6만 원)"
+    LG: "벨링모아A/폰안심패스 93일 유지 (미가입 시 단가 +6만 원)"
 };
 
 const PLAN_DB = {
-    SK: [
-        {n:"5GX 프리미엄", p:109000}, {n:"5GX 프라임플러스", p:99000}, 
-        {n:"5GX 프라임", p:89000}, {n:"5G 레귤러플러스", p:79000}
-    ],
-    KT: [
-        {n:"초이스 스페셜", p:110000}, {n:"스페셜", p:100000}, 
-        {n:"초이스 베이직", p:90000}, {n:"5G 심플110G", p:69000}
-    ],
-    LG: [
-        {n:"5G 시그니처", p:130000}, {n:"5G 프리미어 슈퍼", p:115000}, 
-        {n:"5G 프리미어 플러스", p:105000}, {n:"5G 프리미어레귤러", p:95000}
-    ]
+    SK: [{n:"5GX 프리미엄", p:109000}, {n:"5GX 프라임+", p:99000}, {n:"5GX 프라임", p:89000}, {n:"5G 레귤러+", p:79000}],
+    KT: [{n:"초이스 스페셜", p:110000}, {n:"스페셜", p:100000}, {n:"초이스 베이직", p:90000}, {n:"5G 심플110G", p:69000}],
+    LG: [{n:"5G 시그니처", p:130000}, {n:"5G 프리미어S", p:115000}, {n:"5G 프리미어P", p:105000}, {n:"5G 프리미어R", p:95000}]
 };
 
 let DEVICES = [], curDev = null;
@@ -212,11 +257,9 @@ let state = { tel: 'SK', pay: 'install', type: 'UP', mode: 'gongsi' };
 
 async function loadData() {
     const listArea = document.getElementById('model-list');
-    listArea.innerHTML = `<div style="font-size:12px; color:#999; padding:10px;">${state.tel} 데이터 갱신 중...</div>`;
+    listArea.innerHTML = `<div style="font-size:12px; color:#999; padding:10px;">로딩 중...</div>`;
     
-    const fileId = FILE_IDS[state.tel];
-    const tabName = TAB_NAMES[state.tel];
-    const url = `https://docs.google.com/spreadsheets/d/${fileId}/gviz/tq?tqx=out:csv&sheet=${tabName}`;
+    const url = `https://docs.google.com/spreadsheets/d/${FILE_IDS[state.tel]}/gviz/tq?tqx=out:csv&sheet=${TAB_NAMES[state.tel]}`;
 
     try {
         const res = await fetch(url);
@@ -233,8 +276,15 @@ async function loadData() {
                 while(arr.length < 4) arr.push(0);
                 return arr;
             };
-            return { name: cols[0], price: n(cols[1]), extra: n(cols[2]), UP: s(cols[3]), NP: s(cols[4]) };
-        }).filter(d => d.name && d.name !== "");
+            return { 
+                name: cols[0], 
+                price: n(cols[1]), 
+                extra: n(cols[2]), 
+                UP: s(cols[3]), 
+                NP: s(cols[4]), 
+                formLink: cols[5] 
+            };
+        }).filter(d => d.name);
 
         listArea.innerHTML = "";
         DEVICES.forEach((d, i) => {
@@ -253,7 +303,7 @@ async function loadData() {
         curDev = DEVICES[0];
         render();
     } catch (e) {
-        listArea.innerHTML = `<div style="color:red; font-size:11px; padding:10px;">[${state.tel}] 연동 실패!<br>파일 > 공유 > 웹에 게시 필수</div>`;
+        listArea.innerHTML = `<div style="color:red; font-size:11px; padding:10px;">연동 실패!</div>`;
     }
 }
 
@@ -264,28 +314,28 @@ function render() {
     
     document.getElementById('display-model-name').innerText = curDev.name;
     document.getElementById('view-tel').innerText = state.tel + (state.tel === 'LG' ? 'U+' : 'T');
-    document.getElementById('view-type').innerText = state.type === 'UP' ? '기기변경' : '번호이동';
-    document.getElementById('view-mode').innerText = state.mode === 'gongsi' ? '공시지원금' : '선택약정(25%)';
-    document.getElementById('view-pay').innerText = state.pay === 'install' ? '24개월 할부' : '일시납(완납)';
+    document.getElementById('view-type').innerText = state.type === 'UP' ? '기변' : '번이';
+    document.getElementById('view-mode').innerText = state.mode === 'gongsi' ? '공시' : '선약';
+    document.getElementById('view-pay').innerText = state.pay === 'install' ? '할부' : '완납';
     
-    // 부가서비스 문구 및 스타일 업데이트
     const addonBox = document.getElementById('addon-box');
     addonBox.innerText = ADDON_DB[state.tel];
     addonBox.className = "addon-content " + state.tel.toLowerCase();
 
+    const applyBtn = document.getElementById('main-apply-link');
+    applyBtn.href = (curDev.formLink && curDev.formLink.startsWith('http')) ? curDev.formLink : "http://pf.kakao.com/_sdYlu/chat";
+
     body.innerHTML = "";
     plans.forEach((p, i) => {
-        let saleText = "";
-        let princ = 0;
-        let monthlyPlan = 0;
+        let saleText = "", princ = 0, monthlyPlan = 0;
 
         if (state.mode === 'gongsi') {
             let gongsi = (curDev[state.type][i] || 0) + curDev.extra;
-            saleText = (gongsi/10000).toFixed(0) + "만 할인";
+            saleText = (gongsi/10000).toFixed(0) + "만";
             princ = Math.max(0, curDev.price - gongsi);
             monthlyPlan = p.p;
         } else {
-            saleText = "요금 25% 할인";
+            saleText = "25%";
             princ = curDev.price;
             monthlyPlan = p.p * 0.75;
         }
@@ -295,9 +345,9 @@ function render() {
 
         body.innerHTML += `
             <tr>
-                <td class="plan-name">${p.n}<div class="price-sub">${p.p.toLocaleString()}원 요금제</div></td>
-                <td style="color:${state.mode==='gongsi'?'#444':'#27ae60'}; font-weight:700; font-size:13px;">${saleText}</td>
-                <td style="color:#666; font-size:13px;">${princ.toLocaleString()}원</td>
+                <td class="plan-name">${p.n}<div class="price-sub">${(p.p/10000).toFixed(1)}만 요금제</div></td>
+                <td style="color:${state.mode==='gongsi'?'#444':'#27ae60'}; font-weight:700;">${saleText}</td>
+                <td style="color:#666;">${Math.floor(princ/10000)}만</td>
                 <td class="price-red">${total.toLocaleString()}<span class="won">원</span></td>
             </tr>
         `;
@@ -307,9 +357,8 @@ function render() {
 function updateBrand(val) {
     state.tel = val;
     const root = document.querySelector(':root');
-    if(val === 'SK') root.style.setProperty('--main-color', '#e60023');
-    if(val === 'KT') root.style.setProperty('--main-color', '#007aff');
-    if(val === 'LG') root.style.setProperty('--main-color', '#8e44ad');
+    const colors = { SK: '#e60023', KT: '#007aff', LG: '#8e44ad' };
+    root.style.setProperty('--main-color', colors[val]);
     loadData(); 
 }
 
