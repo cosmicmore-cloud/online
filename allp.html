@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>알고모바일 요금제 생성기</title>
+    <title>알고모바일 요금제 생성기 (최종본)</title>
 <style>
     :root {
         --sk-red: #e60023;
@@ -12,20 +12,18 @@
         --main-color: #e60023; 
     }
 
-    /* 기본 리셋 */
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body { 
         background: #f0f2f5; 
         margin: 0; 
         padding: 10px; 
         display: flex; 
-        flex-direction: column; /* 모바일 우선 수직 배치 */
+        flex-direction: column; 
         gap: 15px; 
         font-family: 'Pretendard', -apple-system, sans-serif; 
         line-height: 1.4;
     }
 
-    /* [1] 설정 컨트롤러 (상단 배치) */
     .admin-controls {
         width: 100%; 
         background: #fff; 
@@ -40,7 +38,7 @@
     
     .model-selector { 
         display: flex; 
-        flex-direction: row; /* 가로 스크롤 형태로 변경 */
+        flex-direction: row; 
         overflow-x: auto; 
         gap: 8px; 
         margin-top: 10px; 
@@ -58,10 +56,9 @@
     }
     .model-btn.active { background: #000; color: #fff; border-color: #000; }
 
-    /* [2] 캡처 영역 (메인 화면) */
     .capture-area { 
         width: 100%; 
-        max-width: 500px; /* 최대폭 제한 */
+        max-width: 500px; 
         margin: 0 auto;
         background: #fff; 
         border-radius: 20px; 
@@ -115,7 +112,6 @@
 
     .footer-notice { padding: 15px; background: #fafafa; font-size: 11px; color: #888; line-height: 1.6; border-top: 1px solid #eee; margin-bottom: 60px; }
 
-    /* 데스크탑 환경에서 가로 배치 유지 */
     @media (min-width: 800px) {
         body { flex-direction: row; align-items: flex-start; justify-content: center; padding: 40px; }
         .admin-controls { width: 280px; position: sticky; top: 20px; }
@@ -169,7 +165,7 @@
         <option value="cash">현금 일시납(완납)</option>
     </select>
 
-    <label>5. 모델 선택 (옆으로 밀어서 선택)</label>
+    <label>5. 모델 선택</label>
     <div class="model-selector" id="model-list">
         <div style="font-size:12px; color:#999; padding:10px;">로딩 중...</div>
     </div>
@@ -184,16 +180,16 @@
 
     <div class="condition-bar">
         <div><span id="view-tel">SKT</span></div>
-        <div><span id="view-type">기기변경</span></div>
-        <div><span id="view-mode">공시지원금</span></div>
-        <div><span id="view-pay">24개월</span></div>
+        <div><span id="view-type">기변</span></div>
+        <div><span id="view-mode">공시</span></div>
+        <div><span id="view-pay">할부</span></div>
     </div>
 
     <table>
         <thead>
             <tr>
                 <th width="33%">요금제</th>
-                <th width="20%">할인</th>
+                <th width="20%">지원금</th>
                 <th width="20%">할부원금</th>
                 <th width="27%">월 납부액</th>
             </tr>
@@ -231,7 +227,6 @@
 </a>
 
 <script>
-// (기존 스크립트 내용과 동일하며, render 부분의 텍스트 크기만 미세 조정됨)
 const FILE_IDS = {
     SK: "13vra0xzllGhkkuVoNaA_KOHXiHbRfwol8zDiB24S00o", 
     KT: "1x3tNRBfNPV4E4OdkM4pDYlD4HKJP1dN0Z2QZxdcXE4o", 
@@ -277,12 +272,13 @@ async function loadData() {
                 return arr;
             };
             return { 
-                name: cols[0], 
-                price: n(cols[1]), 
-                extra: n(cols[2]), 
-                UP: s(cols[3]), 
-                NP: s(cols[4]), 
-                formLink: cols[5] 
+                name: cols[0],       // A열: 기종명
+                price: n(cols[1]),    // B열: 출고가
+                extraUP: n(cols[2]),  // C열: 기변_추가지원금
+                extraNP: n(cols[3]),  // D열: 번이_추가지원금
+                UP: s(cols[4]),       // E열: 기변공시
+                NP: s(cols[5]),       // F열: 번이공시
+                formLink: cols[6]     // G열: 신청URL
             };
         }).filter(d => d.name);
 
@@ -328,15 +324,17 @@ function render() {
     body.innerHTML = "";
     plans.forEach((p, i) => {
         let saleText = "", princ = 0, monthlyPlan = 0;
+        let currentExtra = (state.type === 'UP') ? curDev.extraUP : curDev.extraNP;
 
         if (state.mode === 'gongsi') {
-            let gongsi = (curDev[state.type][i] || 0) + curDev.extra;
+            let gongsi = (curDev[state.type][i] || 0) + currentExtra;
             saleText = (gongsi/10000).toFixed(0) + "만";
             princ = Math.max(0, curDev.price - gongsi);
             monthlyPlan = p.p;
         } else {
             saleText = "25%";
-            princ = curDev.price;
+            // 선택약정 시에도 기변/번이 추가지원금을 기기값에서 차감
+            princ = Math.max(0, curDev.price - currentExtra);
             monthlyPlan = p.p * 0.75;
         }
 
