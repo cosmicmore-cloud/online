@@ -2,369 +2,232 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>알고모바일 요금제 생성기 (최종본)</title>
-<style>
-    :root {
-        --sk-red: #e60023;
-        --kt-blue: #007aff;
-        --lg-purple: #8e44ad;
-        --main-color: #e60023; 
-    }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>알고 모바일 | 실시간 요금표</title>
+    <style>
+        :root { 
+            --t-red: #e60023; 
+            --t-black: #111111;
+            --t-blue: #0054ff; 
+            --t-grey-line: #dddddd;
+            --main-color: #e60023;
+            --kakao-color: #FEE500;
+        }
 
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { 
-        background: #f0f2f5; 
-        margin: 0; 
-        padding: 10px; 
-        display: flex; 
-        flex-direction: column; 
-        gap: 15px; 
-        font-family: 'Pretendard', -apple-system, sans-serif; 
-        line-height: 1.4;
-    }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', 'Malgun Gothic', sans-serif; }
+        body { background-color: #fff; padding: 0; color: var(--t-black); }
+        
+        .calc-wrapper { width: 100%; max-width: 100%; margin: 0 auto; background: #fff; border: 1px solid var(--t-grey-line); overflow: hidden; }
+        
+        .agency-nav { display: flex; background: #fff; border-bottom: 2px solid var(--t-grey-line); }
+        .agency-tab { flex: 1; padding: 18px; border: none; background: #fff; color: #999; cursor: pointer; font-weight: 800; font-size: 1.1rem; }
+        .agency-tab.active { color: var(--main-color); border-bottom: 4px solid var(--main-color); }
 
-    .admin-controls {
-        width: 100%; 
-        background: #fff; 
-        padding: 15px; 
-        border-radius: 15px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
-        border: 1px solid #ddd;
-    }
-    .admin-controls h2 { font-size: 15px; margin: 0 0 10px 0; color: #333; border-bottom: 2px solid #333; padding-bottom: 5px; }
-    .admin-controls label { font-size: 11px; font-weight: bold; color: #666; display: block; margin-top: 8px; }
-    .admin-controls select { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; font-weight: bold; background-color: #fff; font-size: 14px; }
-    
-    .model-selector { 
-        display: flex; 
-        flex-direction: row; 
-        overflow-x: auto; 
-        gap: 8px; 
-        margin-top: 10px; 
-        padding-bottom: 5px;
-        -webkit-overflow-scrolling: touch;
-    }
-    .model-btn { 
-        flex: 0 0 auto;
-        padding: 8px 15px; 
-        border: 1px solid #eee; 
-        background: #f9f9f9; 
-        border-radius: 20px; 
-        font-size: 12px; 
-        font-weight: 600; 
-    }
-    .model-btn.active { background: #000; color: #fff; border-color: #000; }
+        .product-header { padding: 40px 20px; text-align: center; border-bottom: 1px solid var(--t-grey-line); background: #fafafa; }
+        .model-name { font-size: 2.2rem; font-weight: 900; color: #333; margin-bottom: 10px; letter-spacing: -1px; }
+        .spec-info { font-size: 1rem; color: #666; margin-bottom: 20px; }
+        .price-tag-group { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .price-tag { background: #fff; border: 2px solid #333; border-radius: 50px; padding: 10px 20px; font-size: 1rem; font-weight: 700; }
 
-    .capture-area { 
-        width: 100%; 
-        max-width: 500px; 
-        margin: 0 auto;
-        background: #fff; 
-        border-radius: 20px; 
-        overflow: hidden; 
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
-        border: 1px solid #eee;
-    }
+        .control-panel { padding: 25px; background: #fff; border-bottom: 1px solid var(--t-grey-line); }
+        #model-selector { width: 100%; padding: 15px; border: 2px solid #333; border-radius: 8px; font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; cursor: pointer; }
+        .option-row { display: flex; background: #eee; padding: 5px; border-radius: 10px; margin-bottom: 10px; }
+        .opt-btn { flex: 1; padding: 14px; border: none; background: transparent; color: #777; cursor: pointer; font-weight: 700; border-radius: 7px; font-size: 0.9rem; }
+        .opt-btn.active { background: #fff; color: #000; box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
 
-    .header { background: #111; color: #fff; padding: 20px 15px; text-align: center; }
-    .header .brand { color: var(--main-color); font-size: 12px; font-weight: 900; letter-spacing: 2px; display: block; margin-bottom: 5px; }
-    .header .guide-text { color: #aaa; font-size: 11px; margin-bottom: 8px; }
-    .header .title { font-size: 24px; font-weight: 900; letter-spacing: -0.5px; word-break: keep-all; }
+        .notice-box { background: #222; color: #fff; margin: 20px; padding: 20px; border-radius: 10px; font-size: 0.9rem; line-height: 1.6; }
+        .notice-box b { color: #ffeb3b; display: block; margin-bottom: 8px; font-size: 1.05rem; }
 
-    .condition-bar {
-        display: flex; justify-content: space-around; background: #f8f9fa; padding: 12px 5px;
-        border-bottom: 1px solid #eee; font-size: 12px; font-weight: 800; color: #444;
-    }
-    .condition-bar span { color: var(--main-color); }
+        .price-table-container { padding: 0 20px 30px; }
+        .price-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; text-align: center; table-layout: fixed; }
+        .price-table th { background: #5a668c; color: #fff; padding: 15px 5px; font-weight: 700; border: 1px solid #ddd; }
+        .price-table td { padding: 20px 10px; border: 1px solid #ddd; background: #fff; word-break: keep-all; }
+        
+        .plan-title { font-weight: 800; color: #333; font-size: 1.05rem; margin-bottom: 3px; }
+        
+        .discount-info { color: #e60023; font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; }
+        .principal-price { color: var(--t-blue); font-weight: 900; font-size: 1.6rem; letter-spacing: -1px; }
+        .total-monthly { font-weight: 900; font-size: 1.4rem; color: #000; }
+        
+        .sub-txt { font-size: 0.8rem; color: #999; margin-top: 4px; }
+        .cash-badge { display: inline-block; padding: 2px 6px; background: #000; color: #fff; border-radius: 4px; font-size: 0.75rem; margin-bottom: 5px; }
 
-    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    th { background: #fdfdfd; padding: 10px 2px; font-size: 11px; border-bottom: 2px solid #333; color: #333; }
-    td { padding: 15px 2px; text-align: center; border-bottom: 1px solid #eee; font-size: 13px; }
-    
-    .plan-name { font-weight: 800; color: #222; font-size: 13px; }
-    .price-sub { font-size: 10px; color: #999; margin-top: 2px; font-weight: normal; }
-    
-    .price-red { color: var(--main-color) !important; font-weight: 900; font-size: 18px !important; letter-spacing: -0.5px; }
-    .won { font-size: 12px; }
+        .bottom-btns { padding: 20px 25px 40px; display: flex; flex-direction: column; gap: 12px; max-width: 600px; margin: 0 auto; }
+        .btn { text-decoration: none; height: 65px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 800; font-size: 1.2rem; }
+        .btn-main { background: #000; color: #fff; }
+        .btn-kakao { background: var(--kakao-color); color: #3c1e1e; }
 
-    .addon-section { background: #fff; padding: 15px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
-    .addon-title { font-size: 12px; font-weight: 800; color: var(--main-color); margin-bottom: 8px; }
-    .addon-content { background: #fdf2f2; border: 1px dashed var(--main-color); border-radius: 10px; padding: 12px; font-size: 12px; font-weight: 700; color: #333; line-height: 1.5; word-break: keep-all; }
-    .addon-content.kt { background: #f2f7ff; border-color: var(--kt-blue); }
-    .addon-content.lg { background: #f9f2fb; border-color: var(--lg-purple); }
-
-    .contact-info { background: #f8f9fa; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-    .contact-row { display: flex; justify-content: space-between; align-items: center; }
-    .contact-text { font-size: 12px; font-weight: 800; color: #333; }
-    .contact-text span { color: var(--main-color); display: block; font-size: 16px; margin-top: 2px; }
-    
-    .apply-btn {
-        background: var(--main-color); color: #fff; text-align: center; padding: 15px;
-        border-radius: 12px; text-decoration: none; font-size: 15px; font-weight: 900;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-
-    .kakao-btn-box {
-        background: #fee500; color: #3c1e1e; padding: 8px 12px; border-radius: 8px;
-        text-decoration: none; font-size: 12px; font-weight: 900; display: flex; align-items: center; gap: 5px;
-    }
-
-    .footer-notice { padding: 15px; background: #fafafa; font-size: 11px; color: #888; line-height: 1.6; border-top: 1px solid #eee; margin-bottom: 60px; }
-
-    @media (min-width: 800px) {
-        body { flex-direction: row; align-items: flex-start; justify-content: center; padding: 40px; }
-        .admin-controls { width: 280px; position: sticky; top: 20px; }
-        .capture-area { width: 500px; margin: 0; }
-        .model-selector { flex-direction: column; overflow-x: visible; max-height: 500px; }
-        .header .title { font-size: 32px; }
-        .price-red { font-size: 25px !important; }
-        td { font-size: 15px; }
-    }
-
-    .kakao-fixed {
-        position: fixed; bottom: 20px; right: 20px; width: 55px; height: 55px;
-        background: #fee500; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 9999;
-    }
-    .kakao-fixed img { width: 28px; height: 28px; }
-</style>
+        @media (max-width: 600px) {
+            .model-name { font-size: 1.6rem; }
+            .price-table { font-size: 0.8rem; }
+            .principal-price { font-size: 1.25rem; }
+            .total-monthly { font-size: 1.1rem; }
+            .opt-btn { font-size: 0.75rem; padding: 10px 4px; }
+        }
+    </style>
 </head>
 <body>
 
-<div class="admin-controls">
-    <h2>알고모바일 설정</h2>
-    
-    <label>1. 통신사 선택</label>
-    <select id="telecom-select" onchange="updateBrand(this.value)">
-        <option value="SK">SKT (RED)</option>
-        <option value="KT">KT (BLUE)</option>
-        <option value="LG">LGU+ (PURPLE)</option>
-    </select>
+<div class="calc-wrapper">
+    <div class="agency-nav" id="agency-tabs">
+        <button class="agency-tab active" onclick="changeAgency('SK', this)">SKT</button>
+        <button class="agency-tab" onclick="changeAgency('KT', this)">KT</button>
+        <button class="agency-tab" onclick="changeAgency('LG', this)">LG U+</button>
+    </div>
 
-    <div style="display: flex; gap: 10px;">
-        <div style="flex: 1;">
-            <label>2. 할인 방식</label>
-            <select onchange="updateMode(this.value)">
-                <option value="gongsi">공시지원</option>
-                <option value="sanyak">선택약정</option>
-            </select>
-        </div>
-        <div style="flex: 1;">
-            <label>3. 가입 유형</label>
-            <select onchange="updateType(this.value)">
-                <option value="UP">기기변경</option>
-                <option value="NP">번호이동</option>
-            </select>
+    <div class="product-header">
+        <div class="model-name" id="display-model">모델 선택</div>
+        <p class="spec-info">실시간 할인 적용 특가표</p>
+        <div class="price-tag-group">
+            <div class="price-tag" id="tag-price">출고가 확인 중...</div>
         </div>
     </div>
 
-    <label>4. 결제 방식</label>
-    <select onchange="updatePay(this.value)">
-        <option value="install">24개월 할부</option>
-        <option value="cash">현금 일시납(완납)</option>
-    </select>
+    <div class="control-panel">
+        <select id="model-selector" onchange="render()"></select>
+        <div class="option-row">
+            <button class="opt-btn active" onclick="setOpt('transfer', 'MNP', this)">번호이동</button>
+            <button class="opt-btn" onclick="setOpt('transfer', 'KSP', this)">기기변경</button>
+        </div>
+        <div class="option-row">
+            <button class="opt-btn active" onclick="setOpt('discount', '공시', this)">공시지원할인</button>
+            <button class="opt-btn" onclick="setOpt('discount', '선약', this)">선택약정(25%할인)</button>
+        </div>
+        <div class="option-row">
+            <button class="opt-btn active" onclick="setOpt('payType', '할부', this)">24개월 할부</button>
+            <button class="opt-btn" onclick="setOpt('payType', '완납', this)">현금 완납</button>
+        </div>
+    </div>
 
-    <label>5. 모델 선택</label>
-    <div class="model-selector" id="model-list">
-        <div style="font-size:12px; color:#999; padding:10px;">로딩 중...</div>
+    <div class="notice-box">
+        <b>[ 가입 안내 ]</b>
+        - 파란색 <b>할부원금</b>은 모든 할인(공시/선약 + 추가지원금)이 적용된 가격입니다.<br>
+        - 요금제별로 <b>추가지원금</b>이 상이할 수 있으니 표를 확인해주세요.
+    </div>
+
+    <div class="price-table-container">
+        <table class="price-table">
+            <thead>
+                <tr>
+                    <th style="width: 25%;">요금제</th>
+                    <th style="width: 20%;">데이터</th>
+                    <th style="width: 30%;">추가지원금/원금</th>
+                    <th style="width: 25%;">월 청구액</th>
+                </tr>
+            </thead>
+            <tbody id="price-body"></tbody>
+        </table>
+    </div>
+
+    <div class="bottom-btns">
+        <a id="apply-link" href="#" target="_blank" class="btn btn-main">공식 신청서 접수하기</a>
+        <a href="http://pf.kakao.com/_xmgiwn/chat" target="_blank" class="btn btn-kakao">카카오톡 실시간 상담하기</a>
     </div>
 </div>
-
-<div class="capture-area" id="capture-target">
-    <div class="header">
-        <span class="brand">ALGO MOBILE</span>
-        <div class="guide-text">모델 선택 시 월 납부액이 자동 계산됩니다.</div>
-        <div class="title" id="display-model-name">데이터 연동 중...</div>
-    </div>
-
-    <div class="condition-bar">
-        <div><span id="view-tel">SKT</span></div>
-        <div><span id="view-type">기변</span></div>
-        <div><span id="view-mode">공시</span></div>
-        <div><span id="view-pay">할부</span></div>
-    </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th width="33%">요금제</th>
-                <th width="20%">지원금</th>
-                <th width="20%">할부원금</th>
-                <th width="27%">월 납부액</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-    </table>
-
-    <div class="addon-section">
-        <div class="addon-title">📌 개통 필수 부가서비스</div>
-        <div id="addon-box" class="addon-content"></div>
-    </div>
-
-    <div class="contact-info">
-        <a href="#" target="_blank" class="apply-btn" id="main-apply-link">
-            ⚡ 가입 신청서 접수 (클릭)
-        </a>
-        <div class="contact-row">
-            <div class="contact-text">
-                문의 <span>📞 010-7577-5800</span>
-            </div>
-            <a href="http://pf.kakao.com/_sdYlu/chat" target="_blank" class="kakao-btn-box">
-                카톡 상담
-            </a>
-        </div>
-    </div>
-
-    <div class="footer-notice">
-        • 부가세 및 할부이자(5.9%) 포함 금액입니다.<br>
-        • 지원금은 통신사 사정에 따라 변동될 수 있습니다.
-    </div>
-</div>
-
-<a href="http://pf.kakao.com/_sdYlu/chat" target="_blank" class="kakao-fixed">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e3/KakaoTalk_logo.svg" alt="카톡상담">
-</a>
 
 <script>
-const FILE_IDS = {
-    SK: "13vra0xzllGhkkuVoNaA_KOHXiHbRfwol8zDiB24S00o", 
-    KT: "1x3tNRBfNPV4E4OdkM4pDYlD4HKJP1dN0Z2QZxdcXE4o", 
-    LG: "1NaQvnsgXLBWKl9n15otRXCMfRElLhyLdk54VmEGLkfU" 
-};
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQkpuK9stqU__s1xNNaLWgQ3VZjjgIziQtmCav6v2bZirYZQrOJn9kZoxuEK34hb7BU5Qj-1igcI2Jc/pub?output=csv";
+    const PLAN_LIST = {
+        SK: [{n:"5GX 프리미엄", d:"무제한", f:109000}, {n:"5GX 프라임+", d:"무제한", f:99000}, {n:"5GX 프라임", d:"무제한", f:89000}, {n:"5G 레귤러+", d:"250GB", f:79000}],
+        KT: [{n:"초이스 프리미엄", d:"무제한", f:130000}, {n:"초이스 스페셜", d:"무제한", f:110000}, {n:"초이스 베이직", d:"무제한", f:90000}, {n:"5G 심플110G", d:"110GB", f:69000}],
+        LG: [{n:"5G 시그니처", d:"무제한", f:130000}, {n:"5G 프리미어S", d:"무제한", f:115000}, {n:"5G 프리미어P", d:"무제한", f:105000}, {n:"5G 프리미어R", d:"무제한", f:95000}]
+    };
 
-const TAB_NAMES = { SK: "skprice", KT: "skprice", LG: "skprice" };
+    let allData = [];
+    let state = { agency: "SK", transfer: "MNP", discount: "공시", payType: "할부" };
 
-const ADDON_DB = {
-    SK: "보험 T All케어6 M+1개월 (미가입 시 단가 +2만 원)",
-    KT: "필수팩 L1(9,900원) X 4개월 유지 (미가입 시 단가 +5만 원)",
-    LG: "벨링모아A/폰안심패스 93일 유지 (미가입 시 단가 +6만 원)"
-};
-
-const PLAN_DB = {
-    SK: [{n:"5GX 프리미엄", p:109000}, {n:"5GX 프라임+", p:99000}, {n:"5GX 프라임", p:89000}, {n:"5G 레귤러+", p:79000}],
-    KT: [{n:"초이스 스페셜", p:110000}, {n:"스페셜", p:100000}, {n:"초이스 베이직", p:90000}, {n:"5G 심플110G", p:69000}],
-    LG: [{n:"5G 시그니처", p:130000}, {n:"5G 프리미어S", p:115000}, {n:"5G 프리미어P", p:105000}, {n:"5G 프리미어R", p:95000}]
-};
-
-let DEVICES = [], curDev = null;
-let state = { tel: 'SK', pay: 'install', type: 'UP', mode: 'gongsi' };
-
-async function loadData() {
-    const listArea = document.getElementById('model-list');
-    listArea.innerHTML = `<div style="font-size:12px; color:#999; padding:10px;">로딩 중...</div>`;
-    
-    const url = `https://docs.google.com/spreadsheets/d/${FILE_IDS[state.tel]}/gviz/tq?tqx=out:csv&sheet=${TAB_NAMES[state.tel]}`;
-
-    try {
-        const res = await fetch(url);
-        const text = await res.text();
-        const rows = text.split('\n').filter(r => r.trim() !== "").map(row => {
-            const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
-            return row.split(regex).map(cell => cell.replace(/"/g, '').trim());
-        });
-
-        DEVICES = rows.slice(1).map(cols => {
-            const n = (v) => parseInt(String(v || "0").replace(/[^0-9]/g, "")) || 0;
-            const s = (str) => {
-                let arr = (str || "0,0,0,0").split(',').map(v => n(v) * 10000);
-                while(arr.length < 4) arr.push(0);
-                return arr;
-            };
-            return { 
-                name: cols[0],       // A열: 기종명
-                price: n(cols[1]),    // B열: 출고가
-                extraUP: n(cols[2]),  // C열: 기변_추가지원금
-                extraNP: n(cols[3]),  // D열: 번이_추가지원금
-                UP: s(cols[4]),       // E열: 기변공시
-                NP: s(cols[5]),       // F열: 번이공시
-                formLink: cols[6]     // G열: 신청URL
-            };
-        }).filter(d => d.name);
-
-        listArea.innerHTML = "";
-        DEVICES.forEach((d, i) => {
-            const btn = document.createElement('div');
-            btn.className = `model-btn ${i===0?'active':''}`;
-            btn.innerText = d.name;
-            btn.onclick = function() {
-                document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                curDev = d;
-                render();
-            };
-            listArea.appendChild(btn);
-        });
-
-        curDev = DEVICES[0];
-        render();
-    } catch (e) {
-        listArea.innerHTML = `<div style="color:red; font-size:11px; padding:10px;">연동 실패!</div>`;
+    async function init() {
+        try {
+            const res = await fetch(`${CSV_URL}&t=${Date.now()}`);
+            const text = await res.text();
+            const rows = text.split('\n').filter(r => r.trim()).map(row => {
+                const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
+                return row.split(regex).map(cell => cell.replace(/"/g, '').trim());
+            });
+            const headers = rows[0].map(h => h.trim());
+            allData = rows.slice(1).map(row => {
+                let obj = {};
+                headers.forEach((h, i) => obj[h] = row[i]);
+                return obj;
+            });
+            document.getElementById('model-selector').innerHTML = allData.map((d, i) => `<option value="${i}">${d.기종명}</option>`).join('');
+            render();
+        } catch(e) { console.error("데이터 로드 실패"); }
     }
-}
 
-function render() {
-    if(!curDev) return;
-    const body = document.getElementById('tableBody');
-    const plans = PLAN_DB[state.tel];
-    
-    document.getElementById('display-model-name').innerText = curDev.name;
-    document.getElementById('view-tel').innerText = state.tel + (state.tel === 'LG' ? 'U+' : 'T');
-    document.getElementById('view-type').innerText = state.type === 'UP' ? '기변' : '번이';
-    document.getElementById('view-mode').innerText = state.mode === 'gongsi' ? '공시' : '선약';
-    document.getElementById('view-pay').innerText = state.pay === 'install' ? '할부' : '완납';
-    
-    const addonBox = document.getElementById('addon-box');
-    addonBox.innerText = ADDON_DB[state.tel];
-    addonBox.className = "addon-content " + state.tel.toLowerCase();
+    function clean(n) {
+        if(!n) return 0;
+        let num = Number(String(n).replace(/[^0-9]/g, ''));
+        // 만원 단위 입력 대응 (예: 50 입력 시 500,000으로 처리)
+        return (num > 0 && num < 5000) ? num * 10000 : num;
+    }
 
-    const applyBtn = document.getElementById('main-apply-link');
-    applyBtn.href = (curDev.formLink && curDev.formLink.startsWith('http')) ? curDev.formLink : "http://pf.kakao.com/_sdYlu/chat";
+    function render() {
+        const item = allData[document.getElementById('model-selector').value];
+        if(!item) return;
 
-    body.innerHTML = "";
-    plans.forEach((p, i) => {
-        let saleText = "", princ = 0, monthlyPlan = 0;
-        let currentExtra = (state.type === 'UP') ? curDev.extraUP : curDev.extraNP;
+        document.getElementById('display-model').innerText = item.기종명;
+        const fPrice = clean(item.출고가);
+        document.getElementById('tag-price').innerText = `출고가: ${fPrice.toLocaleString()}원`;
+        document.getElementById('apply-link').href = item.신청서URL || "#";
 
-        if (state.mode === 'gongsi') {
-            let gongsi = (curDev[state.type][i] || 0) + currentExtra;
-            saleText = (gongsi/10000).toFixed(0) + "만";
-            princ = Math.max(0, curDev.price - gongsi);
-            monthlyPlan = p.p;
-        } else {
-            saleText = "25%";
-            // 선택약정 시에도 기변/번이 추가지원금을 기기값에서 차감
-            princ = Math.max(0, curDev.price - currentExtra);
-            monthlyPlan = p.p * 0.75;
-        }
+        let html = '';
+        PLAN_LIST[state.agency].forEach((plan, i) => {
+            // [핵심 수정] 추가지원금 데이터를 가져와서 콤마로 나눔
+            const extraCol = state.transfer === 'MNP' ? item.번이_추가지원금 : item.기변_추가지원금;
+            const extraArray = (extraCol || "").split(',');
+            // i번째 값이 있으면 사용하고, 없으면 0번째 값 사용 (데이터가 하나만 있을 때 대비)
+            const rawExtra = extraArray[i] !== undefined ? extraArray[i] : extraArray[0];
+            const extra = clean(rawExtra);
 
-        let monthlyDevice = state.pay === 'install' ? Math.floor((princ * 1.059) / 24 / 10) * 10 : 0;
-        let total = monthlyDevice + monthlyPlan;
+            // 공시지원금 데이터 처리
+            const gongsiCol = `${state.agency}T${state.transfer === 'MNP' ? '번이' : '기변'}`;
+            const gongsiArray = (item[gongsiCol] || "").split(',');
+            const gongsi = clean(gongsiArray[i] !== undefined ? gongsiArray[i] : gongsiArray[0]);
 
-        body.innerHTML += `
-            <tr>
-                <td class="plan-name">${p.n}<div class="price-sub">${(p.p/10000).toFixed(1)}만 요금제</div></td>
-                <td style="color:${state.mode==='gongsi'?'#444':'#27ae60'}; font-weight:700;">${saleText}</td>
-                <td style="color:#666;">${Math.floor(princ/10000)}만</td>
-                <td class="price-red">${total.toLocaleString()}<span class="won">원</span></td>
-            </tr>
-        `;
-    });
-}
+            let totalSale = (state.discount === '공시') ? (gongsi + extra) : extra;
+            let fee = (state.discount === '공시') ? plan.f : plan.f * 0.75;
+            let principal = Math.max(0, fPrice - totalSale);
+            
+            let deviceMonthly = (state.payType === '할부') ? Math.floor((principal * 1.059) / 24 / 10) * 10 : 0;
+            let totalCharge = deviceMonthly + fee;
 
-function updateBrand(val) {
-    state.tel = val;
-    const root = document.querySelector(':root');
-    const colors = { SK: '#e60023', KT: '#007aff', LG: '#8e44ad' };
-    root.style.setProperty('--main-color', colors[val]);
-    loadData(); 
-}
+            html += `
+                <tr>
+                    <td><div class="plan-title">${plan.n}</div><div class="sub-txt">${plan.f.toLocaleString()}원</div></td>
+                    <td>${plan.d}</td>
+                    <td>
+                        <div class="discount-info">추가지원: ${(extra/10000).toFixed(0)}만</div>
+                        <div class="principal-price">${Math.floor(principal/10000)}만</div>
+                        <div class="sub-txt">최종 할부원금</div>
+                    </td>
+                    <td>
+                        ${state.payType === '완납' ? '<span class="cash-badge">현금완납</span>' : ''}
+                        <div class="total-monthly">${totalCharge.toLocaleString()}원</div>
+                        <div class="sub-txt">월 청구합계</div>
+                    </td>
+                </tr>`;
+        });
+        document.getElementById('price-body').innerHTML = html;
+    }
 
-function updateMode(val) { state.mode = val; render(); }
-function updatePay(val) { state.pay = val; render(); }
-function updateType(val) { state.type = val; render(); }
+    function changeAgency(a, btn) {
+        state.agency = a;
+        document.querySelectorAll('.agency-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        const colors = { SK: '#e60023', KT: '#000', LG: '#e6007e' };
+        document.documentElement.style.setProperty('--main-color', colors[a]);
+        render();
+    }
 
-loadData(); 
+    function setOpt(k, v, btn) {
+        state[k] = v;
+        btn.parentElement.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        render();
+    }
+
+    init();
 </script>
 </body>
 </html>
